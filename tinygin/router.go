@@ -22,12 +22,9 @@ func NewRouter() *Router {
 }
 
 func (r *Router) handle(ctx *GinContext) {
-	if _, ok := r.root[ctx.Method]; !ok {
-		PathNotFound(ctx)
-		return
-	}
-	knode := r.root[ctx.Method].Search(ctx.Path, Parseparts(ctx.Path), 0)
+	knode, parms := r.GetRoute(ctx.Method, ctx.Path)
 	if knode != nil {
+		ctx.Parms = parms
 		r.handlers[GetHandlerKey(ctx.Method, knode.path)](ctx)
 	} else {
 		PathNotFound(ctx)
