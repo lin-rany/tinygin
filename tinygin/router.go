@@ -24,7 +24,7 @@ func NewRouter() *Router {
 func (r *Router) handle(ctx *GinContext) {
 	knode, parms := r.GetRoute(ctx.Method, ctx.Path)
 	if knode != nil {
-		ctx.Parms = parms
+		ctx.Params = parms
 		r.handlers[GetHandlerKey(ctx.Method, knode.path)](ctx)
 	} else {
 		PathNotFound(ctx)

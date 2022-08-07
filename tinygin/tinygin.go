@@ -14,10 +14,10 @@ func NewEngine() *Engine {
 		router: NewRouter(),
 	}
 }
-func (e *Engine) Get(path string, handler HandlerFunc) {
+func (e *Engine) GET(path string, handler HandlerFunc) {
 	e.router.AddRoute("GET", path, handler)
 }
-func (e *Engine) Post(path string, handler HandlerFunc) {
+func (e *Engine) POST(path string, handler HandlerFunc) {
 	e.router.AddRoute("POST", path, handler)
 }
 

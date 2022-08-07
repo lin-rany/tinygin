@@ -13,7 +13,7 @@ type GinContext struct {
 	// request info
 	Path   string
 	Method string
-	Parms  map[string]string
+	Params map[string]string
 	// response info
 	StatusCode int
 }
@@ -27,8 +27,8 @@ func NewGinContext(writer http.ResponseWriter, req *http.Request) *GinContext {
 	}
 
 }
-func (c *GinContext) GetParms(key string) string {
-	if val, ok := c.Parms[key]; ok {
+func (c *GinContext) GetParam(key string) string {
+	if val, ok := c.Params[key]; ok {
 		return val
 	} else {
 		return ""

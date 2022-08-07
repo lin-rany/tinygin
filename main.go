@@ -6,16 +6,21 @@ import (
 )
 
 func main() {
-	svr := tinygin.NewEngine()
-	svr.Get("/hello", func(ctx *tinygin.GinContext) {
-		ctx.String(http.StatusOK, "hello world")
-	})
-	svr.Get("/login", func(ctx *tinygin.GinContext) {
-		ctx.JSON(http.StatusOK, tinygin.JS{
-			"username": "ykw",
-			"password": 1234,
-		})
+	r := tinygin.NewEngine()
+
+	r.GET("/hello", func(c *tinygin.GinContext) {
+		// expect /hello?name=geektutu
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
 
-	svr.Run()
+	r.GET("/hello/:name", func(c *tinygin.GinContext) {
+		// expect /hello/geektutu
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.GetParam("name"), c.Path)
+	})
+
+	r.GET("/assets/*filepath", func(c *tinygin.GinContext) {
+		c.JSON(http.StatusOK, tinygin.JS{"filepath": c.GetParam("filepath")})
+	})
+
+	r.Run()
 }
