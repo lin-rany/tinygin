@@ -2,11 +2,12 @@ package tinygin
 
 import (
 	"log"
-	"net/http"
+	"strings"
 )
 
 type HandlerFunc func(ctx *GinContext)
 type Router struct {
+	root     map[string]*node
 	handlers map[string]HandlerFunc
 }
 
@@ -15,18 +16,51 @@ func GetHandlerKey(method, path string) string {
 }
 func NewRouter() *Router {
 	return &Router{
+		root:     make(map[string]*node),
 		handlers: make(map[string]HandlerFunc),
 	}
 }
+
 func (r *Router) handle(ctx *GinContext) {
-	if handler, ok := r.handlers[GetHandlerKey(ctx.Method, ctx.Path)]; ok {
-		handler(ctx)
+	if _, ok := r.root[ctx.Method]; !ok {
+		PathNotFound(ctx)
+		return
+	}
+	knode := r.root[ctx.Method].Search(ctx.Path, Parseparts(ctx.Path), 0)
+	if knode != nil {
+		r.handlers[GetHandlerKey(ctx.Method, knode.path)](ctx)
 	} else {
-		ctx.String(http.StatusNotFound, "404 NOT FOUND: %s\n", ctx.Path)
+		PathNotFound(ctx)
 	}
 }
-func (r *Router) AddRouter(method, path string, handler HandlerFunc) {
-	log.Printf("AddRouter method %v path %v handler %v", method, path, handler)
+func (r *Router) AddRoute(method, path string, handler HandlerFunc) {
+	log.Printf("AddRoute method %v path %v handler %v", method, path, handler)
+	_, ok := r.root[method]
+	if !ok {
+		r.root[method] = &node{}
+	}
+	r.root[method].Insert(path, Parseparts(path), 0)
 	r.handlers[GetHandlerKey(method, path)] = handler
-
+}
+func (r *Router) GetRoute(method, path string) (*node, map[string]string) {
+	if _, ok := r.root[method]; !ok {
+		return nil, nil
+	}
+	knode := r.root[method].Search(path, Parseparts(path), 0)
+	if knode == nil {
+		return nil, nil
+	}
+	params := make(map[string]string)
+	parts := Parseparts(path)
+	knodeparts := Parseparts(knode.path)
+	for index, part := range knodeparts {
+		if part[0] == ':' {
+			params[part[1:]] = parts[index]
+		}
+		if part[0] == '*' && len(part) > 1 {
+			params[part[1:]] = strings.Join(parts[index:], "/")
+			break
+		}
+	}
+	return knode, params
 }
