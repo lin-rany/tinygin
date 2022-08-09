@@ -25,10 +25,12 @@ func (r *Router) handle(ctx *GinContext) {
 	knode, parms := r.GetRoute(ctx.Method, ctx.Path)
 	if knode != nil {
 		ctx.Params = parms
-		r.handlers[GetHandlerKey(ctx.Method, knode.path)](ctx)
+		ctx.handler = append(ctx.handler, r.handlers[GetHandlerKey(ctx.Method, knode.path)])
+
 	} else {
-		PathNotFound(ctx)
+		ctx.handler = append(ctx.handler, PathNotFound)
 	}
+	ctx.Next()
 }
 func (r *Router) AddRoute(method, path string, handler HandlerFunc) {
 	log.Printf("AddRoute method %v path %v handler %v", method, path, handler)

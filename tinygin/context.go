@@ -16,6 +16,9 @@ type GinContext struct {
 	Params map[string]string
 	// response info
 	StatusCode int
+	// middleware
+	index   int
+	handler []HandlerFunc
 }
 
 func NewGinContext(writer http.ResponseWriter, req *http.Request) *GinContext {
@@ -24,9 +27,17 @@ func NewGinContext(writer http.ResponseWriter, req *http.Request) *GinContext {
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method,
+		index:  -1,
 	}
-
 }
+func (c *GinContext) Next() {
+	c.index++
+	hlen := len(c.handler)
+	for ; c.index < hlen; c.index++ {
+		c.handler[c.index](c)
+	}
+}
+
 func (c *GinContext) GetParam(key string) string {
 	if val, ok := c.Params[key]; ok {
 		return val
